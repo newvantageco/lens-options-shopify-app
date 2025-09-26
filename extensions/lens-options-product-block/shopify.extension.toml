@@ -1,0 +1,28 @@
+api_version = "2023-10"
+
+[[extensions]]
+name = "lens-options-product-block"
+type = "ui_extension"
+
+[extensions.targeting]
+target = "purchase.checkout.block.render"
+
+[[extensions.metafields]]
+namespace = "lens_options"
+key = "flow_id"
+name = "Lens Flow ID"
+description = "The ID of the lens flow to use for this product"
+type = "single_line_text_field"
+validations = [
+  { name = "shopify_metafield_definition", value = "single_line_text_field" }
+]
+
+[[extensions.metafields]]
+namespace = "lens_options"
+key = "enabled"
+name = "Enable Lens Options"
+description = "Enable lens selection for this product"
+type = "boolean"
+validations = [
+  { name = "shopify_metafield_definition", value = "boolean" }
+]

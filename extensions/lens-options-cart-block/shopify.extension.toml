@@ -1,0 +1,8 @@
+api_version = "2023-10"
+
+[[extensions]]
+name = "lens-options-cart-block"
+type = "ui_extension"
+
+[extensions.targeting]
+target = "purchase.checkout.cart.render"
