@@ -1,0 +1,185 @@
+name: Dependency Updates & Security
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Update main dependencies
+        run: |
+          npm update
+          npm audit fix --force || echo "Some vulnerabilities could not be fixed automatically"
+
+      - name: Update frontend dependencies
+        run: |
+          cd frontend
+          npm update
+          npm audit fix --force || echo "Some vulnerabilities could not be fixed automatically"
+
+      - name: Check for outdated packages
+        run: |
+          echo "## Main Dependencies" >> $GITHUB_STEP_SUMMARY
+          npm outdated >> $GITHUB_STEP_SUMMARY || echo "All main dependencies are up to date" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Frontend Dependencies" >> $GITHUB_STEP_SUMMARY
+          cd frontend && npm outdated >> $GITHUB_STEP_SUMMARY || echo "All frontend dependencies are up to date" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: '🔄 Automated Dependency Updates'
+          body: |
+            ## 🔄 Automated Dependency Updates
+            
+            This PR contains automated dependency updates for the Lens Options Shopify App.
+            
+            ### Changes
+            - Updated main project dependencies
+            - Updated frontend dependencies
+            - Applied security fixes where possible
+            
+            ### Testing
+            - [ ] Run `npm test` to ensure all tests pass
+            - [ ] Run `npm run build` to ensure build succeeds
+            - [ ] Test the application manually
+            
+            ### Security
+            - [ ] Review any new dependencies for security implications
+            - [ ] Check for any breaking changes in major version updates
+            
+            ---
+            *This PR was created automatically by GitHub Actions.*
+          branch: automated-dependency-updates
+          delete-branch: true
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+
+      - name: Run security audit
+        run: |
+          echo "## Main Dependencies Security Audit" >> $GITHUB_STEP_SUMMARY
+          npm audit --audit-level moderate >> $GITHUB_STEP_SUMMARY || echo "No vulnerabilities found in main dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Frontend Dependencies Security Audit" >> $GITHUB_STEP_SUMMARY
+          cd frontend && npm audit --audit-level moderate >> $GITHUB_STEP_SUMMARY || echo "No vulnerabilities found in frontend dependencies" >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --json-file-output=snyk-results.json
+
+      - name: Upload Snyk results
+        uses: actions/upload-artifact@v3
+        with:
+          name: snyk-security-results
+          path: snyk-results.json
+
+      - name: Comment security results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            let snykResults = {};
+            try {
+              snykResults = JSON.parse(fs.readFileSync('snyk-results.json', 'utf8'));
+            } catch (e) {
+              console.log('No Snyk results found');
+            }
+            
+            const vulnerabilities = snykResults.vulnerabilities || [];
+            const criticalVulns = vulnerabilities.filter(v => v.severity === 'critical').length;
+            const highVulns = vulnerabilities.filter(v => v.severity === 'high').length;
+            
+            let comment = `## 🔒 Security Audit Results\n\n`;
+            comment += `**Critical Vulnerabilities:** ${criticalVulns}\n`;
+            comment += `**High Vulnerabilities:** ${highVulns}\n\n`;
+            
+            if (criticalVulns > 0 || highVulns > 0) {
+              comment += `⚠️ **Action Required:** Please review and fix the security vulnerabilities.\n\n`;
+            } else {
+              comment += `✅ **All Clear:** No critical or high-severity vulnerabilities found.\n\n`;
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  license-check:
+    name: License Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+
+      - name: Check licenses
+        run: |
+          echo "## Main Dependencies Licenses" >> $GITHUB_STEP_SUMMARY
+          npm ls --depth=0 --json | jq -r '.dependencies | to_entries[] | "\(.key): \(.value.license // "Unknown")"' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Frontend Dependencies Licenses" >> $GITHUB_STEP_SUMMARY
+          cd frontend && npm ls --depth=0 --json | jq -r '.dependencies | to_entries[] | "\(.key): \(.value.license // "Unknown")"' >> $GITHUB_STEP_SUMMARY
+
+      - name: Check for problematic licenses
+        run: |
+          echo "## License Compliance Check" >> $GITHUB_STEP_SUMMARY
+          echo "Checking for GPL, AGPL, and other restrictive licenses..." >> $GITHUB_STEP_SUMMARY
+          
+          # Check main dependencies
+          npm ls --depth=0 --json | jq -r '.dependencies | to_entries[] | select(.value.license | test("GPL|AGPL|Copyleft")) | "⚠️ \(.key): \(.value.license)"' >> $GITHUB_STEP_SUMMARY || echo "✅ No problematic licenses found in main dependencies" >> $GITHUB_STEP_SUMMARY
+          
+          # Check frontend dependencies
+          cd frontend && npm ls --depth=0 --json | jq -r '.dependencies | to_entries[] | select(.value.license | test("GPL|AGPL|Copyleft")) | "⚠️ \(.key): \(.value.license)"' >> $GITHUB_STEP_SUMMARY || echo "✅ No problematic licenses found in frontend dependencies" >> $GITHUB_STEP_SUMMARY

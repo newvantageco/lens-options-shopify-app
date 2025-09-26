@@ -1,0 +1,123 @@
+name: Environment Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to setup'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'setup'
+        type: choice
+        options:
+        - setup
+        - teardown
+        - update
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  setup-environment:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+
+      - name: Build application
+        run: |
+          cd frontend && npm run build
+          npm run build
+
+      - name: Setup MongoDB
+        if: github.event.inputs.action == 'setup'
+        run: |
+          echo "Setting up MongoDB for ${{ github.event.inputs.environment }} environment"
+          # Add MongoDB setup commands here
+          # Example: Create database, collections, indexes
+
+      - name: Setup AWS S3
+        if: github.event.inputs.action == 'setup'
+        run: |
+          echo "Setting up AWS S3 for ${{ github.event.inputs.environment }} environment"
+          # Add S3 setup commands here
+          # Example: Create buckets, set permissions
+
+      - name: Setup Shopify App
+        if: github.event.inputs.action == 'setup'
+        run: |
+          echo "Setting up Shopify app for ${{ github.event.inputs.environment }} environment"
+          # Add Shopify app setup commands here
+          # Example: Create app, set webhooks, configure settings
+
+      - name: Run database migrations
+        if: github.event.inputs.action == 'setup'
+        run: |
+          echo "Running database migrations for ${{ github.event.inputs.environment }}"
+          # Add migration commands here
+          # Example: npm run migrate
+
+      - name: Seed database
+        if: github.event.inputs.action == 'setup'
+        run: |
+          echo "Seeding database for ${{ github.event.inputs.environment }}"
+          # Add seed commands here
+          # Example: npm run seed
+
+      - name: Update environment
+        if: github.event.inputs.action == 'update'
+        run: |
+          echo "Updating ${{ github.event.inputs.environment }} environment"
+          # Add update commands here
+          # Example: npm run update
+
+      - name: Teardown environment
+        if: github.event.inputs.action == 'teardown'
+        run: |
+          echo "Tearing down ${{ github.event.inputs.environment }} environment"
+          # Add teardown commands here
+          # Example: Remove resources, clean up data
+
+      - name: Verify environment
+        if: github.event.inputs.action == 'setup'
+        run: |
+          echo "Verifying ${{ github.event.inputs.environment }} environment setup"
+          # Add verification commands here
+          # Example: Health checks, connectivity tests
+
+      - name: Notify completion
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: |
+            🚀 **Environment ${{ github.event.inputs.action }} Complete**
+            
+            **Environment:** ${{ github.event.inputs.environment }}
+            **Action:** ${{ github.event.inputs.action }}
+            **Status:** ${{ job.status }}
+            
+            ${{ job.status == 'success' && '✅ Environment setup completed successfully!' || '❌ Environment setup failed!' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

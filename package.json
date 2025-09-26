@@ -11,7 +11,17 @@
     "deploy": "shopify app deploy",
     "generate": "shopify app generate",
     "start": "node web/index.js",
-    "test": "jest"
+    "test": "jest",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:e2e": "jest --testPathPattern=e2e",
+    "lint": "eslint . --ext .js,.ts,.tsx --ignore-path .gitignore",
+    "lint:fix": "eslint . --ext .js,.ts,.tsx --fix --ignore-path .gitignore",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --ci --coverage --watchAll=false"
   },
   "keywords": [
     "shopify",
