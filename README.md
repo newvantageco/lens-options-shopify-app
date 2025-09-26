@@ -1,6 +1,16 @@
-# Lens Options - Shopify App
+# 🕶️ Lens Options - Shopify App
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
+[![Shopify](https://img.shields.io/badge/Shopify-App-purple.svg)](https://shopify.dev/)
 
 A comprehensive Shopify app for prescription lens selection and customization, similar to LensAdvisor. This app allows customers to select prescription lenses, upload prescriptions, and bundle frames with lenses seamlessly.
+
+## 🚀 **Live Demo**
+- **Test Server**: http://localhost:3001
+- **GitHub Repository**: https://github.com/newvantageco/lens-options-shopify-app
+- **Documentation**: See [PRESCRIPTION_FEATURES.md](./PRESCRIPTION_FEATURES.md)
 
 ## Features
 
@@ -30,7 +40,7 @@ A comprehensive Shopify app for prescription lens selection and customization, s
 - **GDPR Compliant**: Data anonymization and deletion
 - **PIPEDA Compliant**: Canadian privacy law compliance
 
-## Installation
+## 📦 **Installation**
 
 ### Prerequisites
 - Node.js 18+ 
@@ -43,8 +53,8 @@ A comprehensive Shopify app for prescription lens selection and customization, s
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd lens-options
+   git clone https://github.com/newvantageco/lens-options-shopify-app.git
+   cd lens-options-shopify-app
    ```
 
 2. **Install dependencies**
@@ -290,7 +300,33 @@ For support and questions:
 - Documentation: https://docs.lensoptions.com
 - GitHub Issues: https://github.com/lensoptions/app/issues
 
-## Changelog
+## 📚 **Documentation**
+
+- [PRESCRIPTION_FEATURES.md](./PRESCRIPTION_FEATURES.md) - Complete prescription system documentation
+- [PRESCRIPTION_VERIFICATION.md](./PRESCRIPTION_VERIFICATION.md) - Verification checklist
+- [TEST_RESULTS.md](./TEST_RESULTS.md) - Testing results and status
+
+## 🤝 **Contributing**
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 **License**
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🏢 **About New Vantage Co**
+
+This project is developed by [New Vantage Co](https://www.newvantageco.com) - a leading provider of innovative e-commerce solutions.
+
+## 📞 **Support**
+
+For support, email support@newvantageco.com or create an issue in this repository.
+
+## 📝 **Changelog**
 
 ### Version 1.0.0
 - Initial release
@@ -300,3 +336,4 @@ For support and questions:
 - Analytics integration
 - Multi-language support
 - HIPAA/GDPR compliance
+- New Vantage Co inspired styling
